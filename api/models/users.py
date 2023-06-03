@@ -1,6 +1,5 @@
-from fastapi import FastAPI
 from pydantic import BaseModel
-from enum import Enum, auto
+from enum import Enum
 
 
 class UserType(str, Enum):
