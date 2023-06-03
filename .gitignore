@@ -1,3 +1,5 @@
 web/node_modules
-api/.env
+**/__pycache__
+
+.env
 .venv
