@@ -15,7 +15,9 @@ class LoginResponse(BaseModel):
     msg: str | None
 
 
-async def authenticate(token: str = Header(...), redis: aioredis.Redis = Depends(get_redis)):
+async def authenticate(
+    token: str = Header(...), redis: aioredis.Redis = Depends(get_redis)
+):
     # Check if the token exists in Redis
     user_info_json = await redis.get(token)
     if not user_info_json:
@@ -46,5 +48,7 @@ async def login(
     "/auth/logout",
     tags=["Authentication"],
 )
-async def logout(user_info: LdapUserInfo = Depends(authenticate), token: str = Header(...)):
+async def logout(
+    user_info: LdapUserInfo = Depends(authenticate), token: str = Header(...)
+):
     print(token)
