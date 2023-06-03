@@ -3,3 +3,4 @@ pymongo
 uvicorn
 python-dotenv
 python-openstackclient
+python-ldap
