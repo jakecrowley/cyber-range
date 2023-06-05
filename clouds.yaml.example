@@ -1,0 +1,8 @@
+clouds:
+  cyberrange:
+    region_name: RegionOne
+    auth:
+      username: 'admin'
+      password: 'password'
+      project_name: 'default'
+      auth_url: 'http://127.0.0.1:5000/v3'
