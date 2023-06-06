@@ -29,7 +29,7 @@ async def authenticate(
     return user_info
 
 
-@router.post("/auth/login", tags=["Authenticaton"], response_model=LoginResponse)
+@router.post("/auth/login", tags=["Authentication"], response_model=LoginResponse)
 async def login(
     credentials: UserLogin, redis_pool: aioredis.Redis = Depends(get_redis)
 ) -> LoginResponse:

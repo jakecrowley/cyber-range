@@ -9,6 +9,7 @@ from fastapi.openapi.docs import (
 from fastapi.routing import APIRoute
 
 from api.routers.v1 import build_v1_router
+from api.utils.opnstk import OpenStack, OpenStackAPI
 
 app = FastAPI()
 api_v1_router = build_v1_router()
@@ -20,6 +21,7 @@ async def startup_event():
     from api.utils.redis import get_redis
 
     await get_redis()
+    OpenStackAPI = OpenStack()
 
 
 @app.exception_handler(RequestValidationError)
