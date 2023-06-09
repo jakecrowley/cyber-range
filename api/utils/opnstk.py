@@ -82,14 +82,16 @@ class OpenStack:
         )
 
     def list_instances(self, project_id: str = None) -> list[Server]:
-        servers = self.conn.list_servers(all_projects=True, filters={"project_id": project_id})
+        servers = self.conn.list_servers(
+            all_projects=True, filters={"project_id": project_id}
+        )
         return servers
-    
+
     def start_instance(self, vm_id: str, project_name: str = None):
         project = self.conn
         if project_name:
             project = self.conn.connect_as_project(project_name)
-            
+
         instance: Server = project.get_server(vm_id)
         instance.start()
 
@@ -97,8 +99,6 @@ class OpenStack:
         project = self.conn
         if project_name:
             project = self.conn.connect_as_project(project_name)
-            
+
         instance: Server = project.get_server(vm_id)
         instance.stop()
-        
-        

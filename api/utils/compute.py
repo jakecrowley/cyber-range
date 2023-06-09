@@ -3,6 +3,7 @@ def convert_ram_to_str(ram: int) -> str:
         return f"{ram} MB"
     return f"{ram // 1024} GB"
 
+
 def get_ip_from_addresses(addresses: dict) -> str:
     for network in addresses:
         for ip in addresses[network]:
