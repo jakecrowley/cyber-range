@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, Cookie
+from fastapi import APIRouter, Depends
 
-from api.utils.compute import convert_ram_to_str
+from api.utils.compute import convert_ram_to_str, get_ip_from_addresses
 from api.utils.opnstk import OpenStack
 from api.models.users import LdapUserInfo
 from .auth import authenticate
@@ -38,7 +38,7 @@ def list_vms(user_info: LdapUserInfo = Depends(authenticate)):
             {
                 "id": server.id,
                 "name": server.name,
-                "ip": server.access_ipv4,
+                "ip": get_ip_from_addresses(server.addresses),
                 "vcpus": server.flavor.vcpus,
                 "memory": convert_ram_to_str(server.flavor.ram),
                 "disk": server.flavor.disk,
@@ -47,3 +47,13 @@ def list_vms(user_info: LdapUserInfo = Depends(authenticate)):
             for server in servers
         ],
     }
+
+
+@router.get(
+    "/compute/stop_vm",
+    tags=["Compute"],
+)
+def stop_vm(user_info: LdapUserInfo = Depends(authenticate), vm_id: str = None):
+    openstack = OpenStack.Instance()
+    openstack.stop_instance(vm_id)
+    return {"err": False}

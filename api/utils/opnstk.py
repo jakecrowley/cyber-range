@@ -22,6 +22,8 @@ class OpenStack:
     def __init__(self):
         self.conn = openstack.connect(cloud="cyberrange")
 
+    # Project related functions
+
     def get_project(self, project_name: str) -> Project:
         return self.conn.get_project(project_name)
 
@@ -33,6 +35,8 @@ class OpenStack:
             name_or_id="admin", user="admin", project=project_name, domain="default"
         )
         return project
+
+    # Networking related functions
 
     def create_network(self, project_name: str, cidr: str):
         from api.utils.networking import get_dhcp_allocation_pools
@@ -62,6 +66,8 @@ class OpenStack:
 
         return [subnet.cidr for subnet in project.list_subnets()]
 
+    # Compute related functions
+
     def create_instance(
         self,
         project_name: str,
@@ -75,6 +81,24 @@ class OpenStack:
             name=name, image=image_name, flavor=flavor_name, network=network_name
         )
 
-    def list_instances(self, project_id: str) -> list[Server]:
-        servers = self.conn.list_servers()
+    def list_instances(self, project_id: str = None) -> list[Server]:
+        servers = self.conn.list_servers(all_projects=True, filters={"project_id": project_id})
         return servers
+    
+    def start_instance(self, vm_id: str, project_name: str = None):
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+            
+        instance: Server = project.get_server(vm_id)
+        instance.start()
+
+    def stop_instance(self, vm_id: str, project_name: str = None):
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+            
+        instance: Server = project.get_server(vm_id)
+        instance.stop()
+        
+        
