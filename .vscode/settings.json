@@ -1,3 +1,9 @@
 {
-    "python.analysis.extraPaths": ["${workspaceFolder}/api"]
+    "python.analysis.extraPaths": ["${workspaceFolder}/api"],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "eslint.validate": ["javascript"],
+    "eslint.format.enable": true
+
 }

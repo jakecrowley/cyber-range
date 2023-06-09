@@ -1,5 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.docs import (
@@ -9,11 +10,26 @@ from fastapi.openapi.docs import (
 from fastapi.routing import APIRoute
 
 from api.routers.v1 import build_v1_router
-from api.utils.opnstk import OpenStack, OpenStackAPI
+from api.utils.opnstk import OpenStack
+from api.utils.networking import get_unused_private_subnet
+
+origins = [
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    "https://cyberrange.jakecrowley.com",
+]
 
 app = FastAPI()
 api_v1_router = build_v1_router()
 app.include_router(api_v1_router, prefix="/v1")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -21,7 +37,9 @@ async def startup_event():
     from api.utils.redis import get_redis
 
     await get_redis()
-    OpenStackAPI = OpenStack()
+
+    # project_name = "cyberrange-teststudent"
+    # OpenStack.Instance().create_instance(project_name, "cirros", "m1.extra_tiny", project_name, "cirros test")
 
 
 @app.exception_handler(RequestValidationError)

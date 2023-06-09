@@ -1,22 +1,18 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Cookie, HTTPException
 from pydantic import BaseModel
 from api.utils.ldap import LDAP
 from api.models.users import UserLogin, LdapUserInfo
+from api.models.auth import LoginResponse, LogoutResponse
 import aioredis
 from api.utils.redis import get_redis
 import api.utils.tokens as tokens
+from api.utils.opnstk import OpenStack
 
 router = APIRouter()
 
 
-class LoginResponse(BaseModel):
-    err: bool
-    token: str | None
-    msg: str | None
-
-
 async def authenticate(
-    token: str = Header(...), redis: aioredis.Redis = Depends(get_redis)
+    token: str = Cookie(...), redis: aioredis.Redis = Depends(get_redis)
 ):
     # Check if the token exists in Redis
     user_info_json = await redis.get(token)
@@ -29,7 +25,11 @@ async def authenticate(
     return user_info
 
 
-@router.post("/auth/login", tags=["Authentication"], response_model=LoginResponse)
+@router.post(
+    "/auth/login",
+    tags=["Authentication"],
+    response_model=LoginResponse,
+)
 async def login(
     credentials: UserLogin, redis_pool: aioredis.Redis = Depends(get_redis)
 ) -> LoginResponse:
@@ -37,8 +37,15 @@ async def login(
         credentials.username, credentials.password
     )
     if user:
+        openstack = OpenStack.Instance()
+        project = openstack.get_project(f"cyberrange-{user.username}")
+        if project is None:
+            project = openstack.create_project(f"cyberrange-{user.username}")
+
+        user.project_id = str(project.id)
         token = tokens.get_new_token()
-        await redis_pool.set(token, user.json())
+        await redis_pool.set(token, user.json(), ex=86400)
+
         return LoginResponse(err=False, token=token)
 
     return LoginResponse(err=True, msg="Invalid Credentials")
@@ -47,8 +54,12 @@ async def login(
 @router.get(
     "/auth/logout",
     tags=["Authentication"],
+    response_model=LogoutResponse,
 )
 async def logout(
-    user_info: LdapUserInfo = Depends(authenticate), token: str = Header(...)
-):
-    print(token)
+    user_info: LdapUserInfo = Depends(authenticate),
+    token: str = Cookie(...),
+    redis_pool: aioredis.Redis = Depends(get_redis),
+) -> LogoutResponse:
+    redis_pool.delete(token)
+    return LogoutResponse(msg="Successfully logged out")

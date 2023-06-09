@@ -1,5 +1,6 @@
 web/node_modules
 **/__pycache__
+dbs/data
 
 .env
 .venv

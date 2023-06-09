@@ -12,6 +12,7 @@ class LdapUserInfo(BaseModel):
     username: str
     display_name: str
     usertype: UserType
+    project_id: str | None = None
 
 
 class UserLogin(BaseModel):
