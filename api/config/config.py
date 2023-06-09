@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENSTACK_PASSWORD = os.getenv("OPENSTACK_PASSWORD")
+JWT_SECRET = os.getenv("JWT_SECRET")
 MONGO_CONN_STR = os.getenv("MONGO_CONN_STR")
 LDAP_URI = os.getenv("LDAP_URI")
 LDAP_USERNAME = os.getenv("LDAP_USERNAME")

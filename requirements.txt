@@ -6,3 +6,4 @@ python-openstackclient
 python-ldap
 pycln
 black
+pyjwt
