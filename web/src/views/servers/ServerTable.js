@@ -10,6 +10,7 @@ import {
   CDropdownToggle,
   CDropdown,
   CDropdownItem,
+  CTableDataCell,
 } from '@coreui/react'
 import axios from 'axios'
 
@@ -27,6 +28,9 @@ const ServerTable = () => {
         setVMs(data.vms) // Update the state with the retrieved data
       } catch (error) {
         console.error('Error fetching VM data:', error)
+        if (error.response.status === 401) {
+          window.location = '/#/login'
+        }
       }
     }
 
@@ -49,23 +53,23 @@ const ServerTable = () => {
       <CTableBody>
         {vms.map((vm) => (
           <CTableRow key={vm.id}>
-            <CTableHeaderCell>{vm.name}</CTableHeaderCell>
-            <CTableHeaderCell>{vm.ip !== '' ? vm.ip : 'No IP'}</CTableHeaderCell>
-            <CTableHeaderCell>{vm.vcpus}</CTableHeaderCell>
-            <CTableHeaderCell>{vm.memory}</CTableHeaderCell>
-            <CTableHeaderCell>{vm.disk} GB</CTableHeaderCell>
-            <CTableHeaderCell>{vm.status}</CTableHeaderCell>
-            <CTableHeaderCell>
+            <CTableDataCell>{vm.name}</CTableDataCell>
+            <CTableDataCell>{vm.ip !== '' ? vm.ip : 'No IP'}</CTableDataCell>
+            <CTableDataCell>{vm.vcpus}</CTableDataCell>
+            <CTableDataCell>{vm.memory}</CTableDataCell>
+            <CTableDataCell>{vm.disk} GB</CTableDataCell>
+            <CTableDataCell>{vm.status}</CTableDataCell>
+            <CTableDataCell>
               <CDropdown variant="btn-group" key={vm.id}>
                 <CButton color={vm.status === 'SHUTOFF' ? 'success' : 'danger'}>
                   {vm.status === 'SHUTOFF' ? 'Start' : 'Stop'}
                 </CButton>
                 <CDropdownToggle color="secondary" split />
                 <CDropdownMenu>
-                  <CDropdownItem href="#">Things</CDropdownItem>
+                  <CDropdownItem href="#">Reboot</CDropdownItem>
                 </CDropdownMenu>
               </CDropdown>
-            </CTableHeaderCell>
+            </CTableDataCell>
           </CTableRow>
         ))}
       </CTableBody>

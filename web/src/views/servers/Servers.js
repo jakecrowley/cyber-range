@@ -1,7 +1,7 @@
 import React from 'react'
 
 import ServerTable from './ServerTable'
-import { CButton, CCard, CCardBody, CCardHeader } from '@coreui/react'
+import { CButton, CCard, CCardBody, CCardHeader, CPlaceholder } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPlus } from '@coreui/icons'
 
@@ -17,7 +17,7 @@ const Servers = () => {
           </CButton>
         </CCardHeader>
         <CCardBody>
-          <ServerTable />
+          <CPlaceholder component={ServerTable} animation="glow" xs={7} />
         </CCardBody>
       </CCard>
     </>
