@@ -1,5 +1,4 @@
 import React from 'react'
-import { NavLink } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
@@ -8,7 +7,6 @@ import {
   CHeaderDivider,
   CHeaderNav,
   CHeaderToggler,
-  CNavLink,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilMenu } from '@coreui/icons'
@@ -33,9 +31,6 @@ const AppHeader = () => {
           Cyber Range
         </CHeaderBrand>
         <CHeaderNav className="ms-3">
-          <CNavLink to="/dashboard" component={NavLink}>
-            Profile
-          </CNavLink>
           <AppHeaderDropdown />
         </CHeaderNav>
       </CContainer>
