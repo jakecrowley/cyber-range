@@ -35,6 +35,11 @@ const AppHeaderDropdown = () => {
     return jwt_decode(token).display_name
   }
 
+  function logout() {
+    document.cookie = `token=x;domain=.jakecrowley.com;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
+    window.location = '/#/login'
+  }
+
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle placement="bottom-end" className="py-0" caret={false}>
@@ -96,9 +101,9 @@ const AppHeaderDropdown = () => {
           </CBadge>
         </CDropdownItem>
         <CDropdownDivider />
-        <CDropdownItem href="#">
+        <CDropdownItem onClick={logout}>
           <CIcon icon={cilLockLocked} className="me-2" />
-          Lock Account
+          Logout
         </CDropdownItem>
       </CDropdownMenu>
     </CDropdown>

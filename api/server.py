@@ -14,8 +14,7 @@ from api.utils.opnstk import OpenStack
 from api.utils.networking import get_unused_private_subnet
 
 origins = [
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
+    "http://cyberrangedev.jakecrowley.com:3000",
     "https://cyberrange.jakecrowley.com",
 ]
 

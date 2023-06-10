@@ -6,6 +6,8 @@ from openstack.compute.v2.server import Server
 from openstack.network.v2.subnet import Subnet
 from openstack.network.v2.router import Router
 from keystoneauth1.session import Session
+from novaclient.v2.client import Client
+import novaclient.client as nova
 
 _instance = None
 
@@ -86,6 +88,15 @@ class OpenStack:
             all_projects=True, filters={"project_id": project_id}
         )
         return servers
+
+    def get_console_url(self, server_id: str, project_name: str) -> str:
+        instance: Server = self.conn.get_server(server_id, all_projects=True)
+        nova_client: Client = nova.Client(2, session=self.conn.session)
+
+        if instance.project_id != project_name:
+            return None
+
+        return nova_client.servers.get_vnc_console(instance, "novnc")
 
     def start_instance(self, vm_id: str, project_name: str = None):
         project = self.conn

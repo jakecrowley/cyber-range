@@ -41,7 +41,7 @@ const Login = () => {
             // Perform any further actions after successful login
             // For example, redirect to another page or update the application state
             // Redirect to the home page
-            window.location.href = '/'
+            window.location.href = '/#/servers'
           }
         })
         .catch((error) => {

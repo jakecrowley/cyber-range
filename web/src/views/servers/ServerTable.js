@@ -28,9 +28,7 @@ const ServerTable = () => {
         setVMs(data.vms) // Update the state with the retrieved data
       } catch (error) {
         console.error('Error fetching VM data:', error)
-        if (error.response.status === 401) {
-          window.location = '/#/login'
-        }
+        window.location = '/#/login'
       }
     }
 

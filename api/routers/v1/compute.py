@@ -57,3 +57,19 @@ def stop_vm(user_info: LdapUserInfo = Depends(authenticate), vm_id: str = None):
     openstack = OpenStack.Instance()
     openstack.stop_instance(vm_id)
     return {"err": False}
+
+
+@router.get(
+    "/compute/get_console_url",
+    tags=["Compute"],
+)
+def get_console_url(
+    user_info: LdapUserInfo = Depends(authenticate), server_id: str = None
+):
+    openstack = OpenStack.Instance()
+    return {
+        "err": False,
+        "url": openstack.get_console_url(server_id, user_info.project_id)["console"][
+            "url"
+        ],
+    }
