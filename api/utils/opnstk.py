@@ -14,6 +14,7 @@ _instance = None
 
 class OpenStack:
     conn: Connection = None
+    nova: Client = None
 
     def Instance() -> "OpenStack":
         global _instance
@@ -23,6 +24,7 @@ class OpenStack:
 
     def __init__(self):
         self.conn = openstack.connect(cloud="cyberrange")
+        self.nova = nova.Client(2, session=self.conn.session)
 
     # Project related functions
 
@@ -91,25 +93,22 @@ class OpenStack:
 
     def get_console_url(self, server_id: str, project_name: str) -> str:
         instance: Server = self.conn.get_server(server_id, all_projects=True)
-        nova_client: Client = nova.Client(2, session=self.conn.session)
 
         if instance.project_id != project_name:
             return None
 
-        return nova_client.servers.get_vnc_console(instance, "novnc")
+        return self.nova.servers.get_vnc_console(instance, "novnc")
 
-    def start_instance(self, vm_id: str, project_name: str = None):
-        project = self.conn
-        if project_name:
-            project = self.conn.connect_as_project(project_name)
+    def start_instance(self, vm_id: str, project_id: str = None):
+        instance: Server = self.conn.get_server(vm_id, all_projects=True)
+        if instance.project_id != project_id:
+            raise Exception("Unauthorized")
+        
+        self.nova.servers.start(instance)
 
-        instance: Server = project.get_server(vm_id)
-        instance.start()
-
-    def stop_instance(self, vm_id: str, project_name: str = None):
-        project = self.conn
-        if project_name:
-            project = self.conn.connect_as_project(project_name)
-
-        instance: Server = project.get_server(vm_id)
-        instance.stop()
+    def stop_instance(self, vm_id: str, project_id: str = None):
+        instance: Server = self.conn.get_server(vm_id, all_projects=True)
+        if instance.project_id != project_id:
+            raise Exception("Unauthorized")
+        
+        self.nova.servers.stop(instance)

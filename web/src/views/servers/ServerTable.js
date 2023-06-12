@@ -12,6 +12,7 @@ import {
   CDropdownItem,
   CTableDataCell,
 } from '@coreui/react'
+import { API_URLS } from 'src/components'
 import axios from 'axios'
 
 const ServerTable = () => {
@@ -20,10 +21,7 @@ const ServerTable = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          'https://cyberrangeapi.jakecrowley.com/v1/compute/list_vms',
-          { withCredentials: true },
-        )
+        const response = await axios.get(API_URLS['LIST_VMS'], { withCredentials: true })
         const data = response.data
         setVMs(data.vms) // Update the state with the retrieved data
       } catch (error) {
@@ -34,6 +32,19 @@ const ServerTable = () => {
 
     fetchData()
   }, []) // Empty dependency array to run the effect only once on component mount
+
+  const startStopVM = async (vm_id, status) => {
+    var action_url = ''
+    if (status === 'SHUTOFF') action_url = API_URLS['START_VM']
+    else action_url = API_URLS['STOP_VM']
+
+    try {
+      const response = await axios.get(action_url + '?vm_id=' + vm_id, { withCredentials: true })
+      console.log(response.data)
+    } catch (error) {
+      console.error('Request Error:', error)
+    }
+  }
 
   return (
     <CTable>
@@ -59,12 +70,16 @@ const ServerTable = () => {
             <CTableDataCell>{vm.status}</CTableDataCell>
             <CTableDataCell>
               <CDropdown variant="btn-group" key={vm.id}>
-                <CButton color={vm.status === 'SHUTOFF' ? 'success' : 'danger'}>
+                <CButton
+                  color={vm.status === 'SHUTOFF' ? 'success' : 'danger'}
+                  onClick={() => startStopVM(vm.id, vm.status)}
+                >
                   {vm.status === 'SHUTOFF' ? 'Start' : 'Stop'}
                 </CButton>
                 <CDropdownToggle color="secondary" split />
                 <CDropdownMenu>
                   <CDropdownItem href="#">Reboot</CDropdownItem>
+                  <CDropdownItem href="#">Console Log</CDropdownItem>
                 </CDropdownMenu>
               </CDropdown>
             </CTableDataCell>

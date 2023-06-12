@@ -4,6 +4,7 @@ from api.utils.compute import convert_ram_to_str, get_ip_from_addresses
 from api.utils.opnstk import OpenStack
 from api.models.users import LdapUserInfo
 from .auth import authenticate
+from api.routers.v1.ws import manager
 
 router = APIRouter()
 
@@ -48,6 +49,14 @@ def list_vms(user_info: LdapUserInfo = Depends(authenticate)):
         ],
     }
 
+@router.get(
+    "/compute/start_vm",
+    tags=["Compute"],
+)
+def start_vm(user_info: LdapUserInfo = Depends(authenticate), vm_id: str = None):
+    openstack = OpenStack.Instance()
+    openstack.start_instance(vm_id, user_info.project_id)
+    return {"err": False}
 
 @router.get(
     "/compute/stop_vm",
@@ -55,7 +64,7 @@ def list_vms(user_info: LdapUserInfo = Depends(authenticate)):
 )
 def stop_vm(user_info: LdapUserInfo = Depends(authenticate), vm_id: str = None):
     openstack = OpenStack.Instance()
-    openstack.stop_instance(vm_id)
+    openstack.stop_instance(vm_id, user_info.project_id)
     return {"err": False}
 
 

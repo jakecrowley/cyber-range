@@ -1,6 +1,7 @@
 import { CButton, CCard, CCardBody, CCardHeader } from '@coreui/react'
 import { React, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
+import { API_URLS } from 'src/components'
 
 const ConsolePage = () => {
   const [consoleUrl, setConsoleUrl] = useState([])
@@ -10,10 +11,9 @@ const ConsolePage = () => {
     const fetchData = async () => {
       var server_id = window.location.href.split('/').pop()
       try {
-        const response = await axios.get(
-          'https://cyberrangeapi.jakecrowley.com/v1/compute/get_console_url?server_id=' + server_id,
-          { withCredentials: true },
-        )
+        const response = await axios.get(API_URLS['GET_CONSOLE_URL'] + '?server_id=' + server_id, {
+          withCredentials: true,
+        })
         const data = response.data
         setConsoleUrl(data.url) // Update the state with the retrieved data
       } catch (error) {

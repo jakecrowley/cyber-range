@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { CNavItem } from '@coreui/react'
+import API_URLS from './AppAPI'
 
 const ConsoleNavList = () => {
   const [vms, setVMs] = useState([])
@@ -8,10 +9,7 @@ const ConsoleNavList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          'https://cyberrangeapi.jakecrowley.com/v1/compute/list_vms',
-          { withCredentials: true },
-        )
+        const response = await axios.get(API_URLS['LIST_VMS'], { withCredentials: true })
         const data = response.data
         setVMs(data.vms) // Update the state with the retrieved data
       } catch (error) {
