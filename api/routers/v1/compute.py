@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+import json
+from fastapi import APIRouter, Depends, BackgroundTasks
 
 from api.utils.compute import convert_ram_to_str, get_ip_from_addresses
 from api.utils.opnstk import OpenStack
@@ -7,6 +8,25 @@ from .auth import authenticate
 from api.routers.v1.ws import manager
 
 router = APIRouter()
+
+
+async def poll_vm_status(old_status: str, vm_id: str, project_id: str):
+    openstack = OpenStack.Instance()
+    while True:
+        status = openstack.get_instance_status(vm_id, project_id=project_id)
+        print(status)
+
+        if status != old_status:
+            await manager.send_message(
+                project_id,
+                json.dumps(
+                    {
+                        "type": "INSTANCE_STATUS",
+                        "data": {"vm_id": vm_id, "status": status},
+                    }
+                ),
+            )
+            return
 
 
 @router.post(
@@ -49,22 +69,34 @@ def list_vms(user_info: LdapUserInfo = Depends(authenticate)):
         ],
     }
 
+
 @router.get(
     "/compute/start_vm",
     tags=["Compute"],
 )
-def start_vm(user_info: LdapUserInfo = Depends(authenticate), vm_id: str = None):
+def start_vm(
+    background_tasks: BackgroundTasks,
+    user_info: LdapUserInfo = Depends(authenticate),
+    vm_id: str = None,
+):
     openstack = OpenStack.Instance()
     openstack.start_instance(vm_id, user_info.project_id)
+    background_tasks.add_task(poll_vm_status, "SHUTOFF", vm_id, user_info.project_id)
     return {"err": False}
+
 
 @router.get(
     "/compute/stop_vm",
     tags=["Compute"],
 )
-def stop_vm(user_info: LdapUserInfo = Depends(authenticate), vm_id: str = None):
+def stop_vm(
+    background_tasks: BackgroundTasks,
+    user_info: LdapUserInfo = Depends(authenticate),
+    vm_id: str = None,
+):
     openstack = OpenStack.Instance()
     openstack.stop_instance(vm_id, user_info.project_id)
+    background_tasks.add_task(poll_vm_status, "ACTIVE", vm_id, user_info.project_id)
     return {"err": False}
 
 

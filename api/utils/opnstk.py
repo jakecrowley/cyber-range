@@ -91,11 +91,19 @@ class OpenStack:
         )
         return servers
 
+    def get_instance_status(self, server_id: str, project_id: str = None) -> str:
+        instance: Server = self.conn.get_server(server_id, all_projects=True)
+
+        if instance.project_id != project_id:
+            raise Exception("Unauthorized")
+
+        return instance.status
+
     def get_console_url(self, server_id: str, project_name: str) -> str:
         instance: Server = self.conn.get_server(server_id, all_projects=True)
 
         if instance.project_id != project_name:
-            return None
+            raise Exception("Unauthorized")
 
         return self.nova.servers.get_vnc_console(instance, "novnc")
 
@@ -103,12 +111,12 @@ class OpenStack:
         instance: Server = self.conn.get_server(vm_id, all_projects=True)
         if instance.project_id != project_id:
             raise Exception("Unauthorized")
-        
+
         self.nova.servers.start(instance)
 
     def stop_instance(self, vm_id: str, project_id: str = None):
         instance: Server = self.conn.get_server(vm_id, all_projects=True)
         if instance.project_id != project_id:
             raise Exception("Unauthorized")
-        
+
         self.nova.servers.stop(instance)

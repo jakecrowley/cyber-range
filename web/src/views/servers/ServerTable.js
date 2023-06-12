@@ -17,6 +17,7 @@ import axios from 'axios'
 
 const ServerTable = () => {
   const [vms, setVMs] = useState([])
+  const [socket, setSocket] = useState(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +32,20 @@ const ServerTable = () => {
     }
 
     fetchData()
+
+    const ws = new WebSocket(API_URLS['WEBSOCKET'])
+    setSocket(ws)
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data)
+      if (msg.type === 'INSTANCE_STATUS') {
+        console.log(msg.data)
+      }
+    }
+
+    return () => {
+      ws.close()
+    }
   }, []) // Empty dependency array to run the effect only once on component mount
 
   const startStopVM = async (vm_id, status) => {
