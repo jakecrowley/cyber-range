@@ -38,8 +38,17 @@ const ServerTable = () => {
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data)
+
       if (msg.type === 'INSTANCE_STATUS') {
-        console.log(msg.data)
+        setVMs((prevData) => {
+          const newData = prevData.map((vm) => {
+            if (vm.id === msg.data.vm_id) {
+              return { ...vm, status: msg.data.status }
+            }
+            return vm
+          })
+          return newData
+        })
       }
     }
 
@@ -53,9 +62,19 @@ const ServerTable = () => {
     if (status === 'SHUTOFF') action_url = API_URLS['START_VM']
     else action_url = API_URLS['STOP_VM']
 
+    setVMs((prevData) => {
+      const newData = prevData.map((vm) => {
+        if (vm.id === vm_id) {
+          if (vm.status === 'SHUTOFF') return { ...vm, status: 'STARTING' }
+          else return { ...vm, status: 'STOPPING' }
+        }
+        return vm
+      })
+      return newData
+    })
+
     try {
-      const response = await axios.get(action_url + '?vm_id=' + vm_id, { withCredentials: true })
-      console.log(response.data)
+      await axios.get(action_url + '?vm_id=' + vm_id, { withCredentials: true })
     } catch (error) {
       console.error('Request Error:', error)
     }
@@ -86,6 +105,7 @@ const ServerTable = () => {
             <CTableDataCell>
               <CDropdown variant="btn-group" key={vm.id}>
                 <CButton
+                  disabled={vm.status === 'STARTING' || vm.status === 'STOPPING' ? true : false}
                   color={vm.status === 'SHUTOFF' ? 'success' : 'danger'}
                   onClick={() => startStopVM(vm.id, vm.status)}
                 >
@@ -97,6 +117,10 @@ const ServerTable = () => {
                   <CDropdownItem href="#">Console Log</CDropdownItem>
                 </CDropdownMenu>
               </CDropdown>
+              &nbsp;
+              <CButton disabled={vm.status === 'ACTIVE' ? false : true} color="success">
+                Connect
+              </CButton>
             </CTableDataCell>
           </CTableRow>
         ))}
