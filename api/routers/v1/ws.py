@@ -1,6 +1,9 @@
+import json
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from api.routers.v1.auth import authenticate
 from api.models.users import LdapUserInfo
+import api.utils.redis as Redis
+import asyncio
 
 router = APIRouter()
 
@@ -21,6 +24,25 @@ class ConnectionManager:
     async def send_message(
         self,
         project_id: str,
+        message: str | dict,
+    ):
+        if isinstance(message, dict):
+            message = json.dumps(message)
+        
+        await Redis.get_redis().publish(
+            "websocket",
+            json.dumps(
+                {
+                    "broadcast": False,
+                    "project_id": project_id,
+                    "message": message,
+                }
+            ),
+        )
+
+    async def _send_message(
+        self,
+        project_id: str,
         message: str,
     ):
         for ws in self.active_connections[project_id]:
@@ -29,6 +51,19 @@ class ConnectionManager:
     async def broadcast(self, message: str):
         for connection in self.active_connections:
             await connection.send_text(message)
+
+    async def consume(self):
+        sub = Redis.get_pubsub()
+        await sub.subscribe("websocket")
+        while True:
+            await asyncio.sleep(0.01)
+            message = await sub.get_message(ignore_subscribe_messages=True)
+            if message is not None and isinstance(message, dict):
+                msg = json.loads(message.get("data"))
+                if msg["broadcast"] == True:
+                    await self.broadcast(msg["message"])
+                elif msg["project_id"] in self.active_connections:
+                    await self._send_message(msg["project_id"], msg["message"])
 
 
 manager = ConnectionManager()
@@ -42,3 +77,8 @@ async def ws(websocket: WebSocket, user_info: LdapUserInfo = Depends(authenticat
             _ = await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(user_info.project_id, websocket)
+
+
+@router.on_event("startup")
+async def subscribe():
+    asyncio.create_task(manager.consume())

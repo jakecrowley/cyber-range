@@ -14,17 +14,14 @@ async def poll_vm_status(old_status: str, vm_id: str, project_id: str):
     openstack = OpenStack.Instance()
     while True:
         status = openstack.get_instance_status(vm_id, project_id=project_id)
-        print(status)
 
         if status != old_status:
             await manager.send_message(
                 project_id,
-                json.dumps(
-                    {
-                        "type": "INSTANCE_STATUS",
-                        "data": {"vm_id": vm_id, "status": status},
-                    }
-                ),
+                {
+                    "type": "INSTANCE_STATUS",
+                    "data": {"vm_id": vm_id, "status": status},
+                },
             )
             return
 

@@ -35,7 +35,7 @@ app.add_middleware(
 async def startup_event():
     from api.utils.redis import get_redis
 
-    await get_redis()
+    get_redis()
 
     # project_name = "cyberrange-teststudent"
     # OpenStack.Instance().create_instance(project_name, "cirros", "m1.extra_tiny", project_name, "cirros test")
@@ -43,7 +43,7 @@ async def startup_event():
 
 @app.exception_handler(RequestValidationError)
 async def http_exception_handler(request, exc):
-    if exc.raw_errors[0]._loc == ("header", "token"):
+    if exc.raw_errors[0]._loc == ("cookie", "token"):
         return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
 
 
