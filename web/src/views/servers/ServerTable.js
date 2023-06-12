@@ -59,19 +59,13 @@ const ServerTable = () => {
 
   const startStopVM = async (vm_id, status) => {
     var action_url = ''
-    if (status === 'SHUTOFF') action_url = API_URLS['START_VM']
-    else action_url = API_URLS['STOP_VM']
-
-    setVMs((prevData) => {
-      const newData = prevData.map((vm) => {
-        if (vm.id === vm_id) {
-          if (vm.status === 'SHUTOFF') return { ...vm, status: 'STARTING' }
-          else return { ...vm, status: 'STOPPING' }
-        }
-        return vm
-      })
-      return newData
-    })
+    if (status === 'REBOOT') action_url = API_URLS['REBOOT_VM']
+    else if (status === 'SHUTOFF') action_url = API_URLS['START_VM']
+    else if (status === 'SHUTOFF') action_url = API_URLS['STOP_VM']
+    else {
+      console.error('unknown vm power action')
+      return
+    }
 
     try {
       await axios.get(action_url + '?vm_id=' + vm_id, { withCredentials: true })
@@ -105,7 +99,13 @@ const ServerTable = () => {
             <CTableDataCell>
               <CDropdown variant="btn-group" key={vm.id}>
                 <CButton
-                  disabled={vm.status === 'STARTING' || vm.status === 'STOPPING' ? true : false}
+                  disabled={
+                    vm.status === 'STARTING' ||
+                    vm.status === 'STOPPING' ||
+                    vm.status === 'REBOOTING'
+                      ? true
+                      : false
+                  }
                   color={vm.status === 'SHUTOFF' ? 'success' : 'danger'}
                   onClick={() => startStopVM(vm.id, vm.status)}
                 >
@@ -113,12 +113,17 @@ const ServerTable = () => {
                 </CButton>
                 <CDropdownToggle color="secondary" split />
                 <CDropdownMenu>
-                  <CDropdownItem href="#">Reboot</CDropdownItem>
+                  <CDropdownItem onClick={() => startStopVM(vm.id, 'REBOOT')}>Reboot</CDropdownItem>
                   <CDropdownItem href="#">Console Log</CDropdownItem>
+                  <CDropdownItem href="#">Delete</CDropdownItem>
                 </CDropdownMenu>
               </CDropdown>
               &nbsp;
-              <CButton disabled={vm.status === 'ACTIVE' ? false : true} color="success">
+              <CButton
+                href={'#/console/' + vm.id}
+                disabled={vm.status === 'ACTIVE' ? false : true}
+                color="success"
+              >
                 Connect
               </CButton>
             </CTableDataCell>

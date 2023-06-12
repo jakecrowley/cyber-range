@@ -120,3 +120,12 @@ class OpenStack:
             raise Exception("Unauthorized")
 
         self.nova.servers.stop(instance)
+
+    def reboot_instance(
+        self, vm_id: str, project_id: str = None, reboot_type: str = "SOFT"
+    ):
+        instance: Server = self.conn.get_server(vm_id, all_projects=True)
+        if instance.project_id != project_id:
+            raise Exception("Unauthorized")
+
+        self.nova.servers.reboot(instance, reboot_type)

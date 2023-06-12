@@ -15,7 +15,7 @@ async def poll_vm_status(old_status: str, vm_id: str, project_id: str):
     while True:
         status = openstack.get_instance_status(vm_id, project_id=project_id)
 
-        if status != old_status:
+        if status != old_status and status != "REBOOT":
             await manager.send_message(
                 project_id,
                 {
@@ -71,13 +71,22 @@ def list_vms(user_info: LdapUserInfo = Depends(authenticate)):
     "/compute/start_vm",
     tags=["Compute"],
 )
-def start_vm(
+async def start_vm(
     background_tasks: BackgroundTasks,
+    vm_id: str,
     user_info: LdapUserInfo = Depends(authenticate),
-    vm_id: str = None,
 ):
     openstack = OpenStack.Instance()
     openstack.start_instance(vm_id, user_info.project_id)
+
+    await manager.send_message(
+        user_info.project_id,
+        {
+            "type": "INSTANCE_STATUS",
+            "data": {"vm_id": vm_id, "status": "STARTING"},
+        },
+    )
+
     background_tasks.add_task(poll_vm_status, "SHUTOFF", vm_id, user_info.project_id)
     return {"err": False}
 
@@ -86,14 +95,44 @@ def start_vm(
     "/compute/stop_vm",
     tags=["Compute"],
 )
-def stop_vm(
+async def stop_vm(
     background_tasks: BackgroundTasks,
+    vm_id: str,
     user_info: LdapUserInfo = Depends(authenticate),
-    vm_id: str = None,
 ):
     openstack = OpenStack.Instance()
     openstack.stop_instance(vm_id, user_info.project_id)
+
+    await manager.send_message(
+        user_info.project_id,
+        {
+            "type": "INSTANCE_STATUS",
+            "data": {"vm_id": vm_id, "status": "STOPPING"},
+        },
+    )
+
     background_tasks.add_task(poll_vm_status, "ACTIVE", vm_id, user_info.project_id)
+    return {"err": False}
+
+
+@router.get("/compute/reboot_vm", tags=["Compute"])
+async def reboot_vm(
+    background_tasks: BackgroundTasks,
+    vm_id: str,
+    user_info: LdapUserInfo = Depends(authenticate),
+):
+    openstack = OpenStack.Instance()
+    openstack.reboot_instance(vm_id, user_info.project_id)
+
+    await manager.send_message(
+        user_info.project_id,
+        {
+            "type": "INSTANCE_STATUS",
+            "data": {"vm_id": vm_id, "status": "REBOOT"},
+        },
+    )
+
+    background_tasks.add_task(poll_vm_status, "SHUTOFF", vm_id, user_info.project_id)
     return {"err": False}
 
 

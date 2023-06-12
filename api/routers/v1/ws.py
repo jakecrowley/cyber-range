@@ -28,7 +28,7 @@ class ConnectionManager:
     ):
         if isinstance(message, dict):
             message = json.dumps(message)
-        
+
         await Redis.get_redis().publish(
             "websocket",
             json.dumps(

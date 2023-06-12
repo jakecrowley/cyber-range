@@ -29,7 +29,7 @@ const Login = () => {
         .post('https://cyberrangeapi.jakecrowley.com/v1/auth/login', { username, password })
         .then((response) => {
           if (response.data.err === true) {
-            console.log(response.data.msg)
+            document.getElementById('error').hidden = false
             return
           } else {
             const token = response.data.token
@@ -45,8 +45,8 @@ const Login = () => {
           }
         })
         .catch((error) => {
-          // Handle login errors
           console.error('Login failed:', error)
+          document.getElementById('error').hidden = false
         })
     }
   }
@@ -64,6 +64,9 @@ const Login = () => {
               <CCard className="p-4">
                 <CCardBody>
                   <CForm>
+                    <p id="error" hidden="true" style={{ textAlign: 'center', color: 'red' }}>
+                      Invalid Login Credentials
+                    </p>
                     <h1>Login</h1>
                     <p className="text-medium-emphasis">Sign In to your account</p>
                     <CInputGroup className="mb-3">
@@ -92,11 +95,6 @@ const Login = () => {
                       <CCol xs={6}>
                         <CButton color="primary" className="px-4" onClick={login}>
                           Login
-                        </CButton>
-                      </CCol>
-                      <CCol xs={6} className="text-right">
-                        <CButton color="link" className="px-0">
-                          Forgot password?
                         </CButton>
                       </CCol>
                     </CRow>
