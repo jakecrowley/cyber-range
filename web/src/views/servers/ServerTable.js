@@ -15,9 +15,11 @@ import {
 import { API_URLS } from 'src/components'
 import axios from 'axios'
 
-const ServerTable = () => {
+const ServerTable = (ctx) => {
   const [vms, setVMs] = useState([])
   const [socket, setSocket] = useState(null)
+
+  console.log(ctx)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,10 +61,13 @@ const ServerTable = () => {
 
   const startStopVM = async (vm_id, status) => {
     var action_url = ''
-    if (status === 'REBOOT') action_url = API_URLS['REBOOT_VM']
-    else if (status === 'SHUTOFF') action_url = API_URLS['START_VM']
-    else if (status === 'SHUTOFF') action_url = API_URLS['STOP_VM']
-    else {
+    if (status === 'REBOOT') {
+      action_url = API_URLS['REBOOT_VM']
+    } else if (status === 'SHUTOFF') {
+      action_url = API_URLS['START_VM']
+    } else if (status === 'ACTIVE') {
+      action_url = API_URLS['STOP_VM']
+    } else {
       console.error('unknown vm power action')
       return
     }
@@ -115,7 +120,14 @@ const ServerTable = () => {
                 <CDropdownMenu>
                   <CDropdownItem onClick={() => startStopVM(vm.id, 'REBOOT')}>Reboot</CDropdownItem>
                   <CDropdownItem href="#">Console Log</CDropdownItem>
-                  <CDropdownItem href="#">Delete</CDropdownItem>
+                  <CDropdownItem
+                    onClick={() => {
+                      ctx.setDeleteServerId(vm.id)
+                      ctx.setModalVisible(true)
+                    }}
+                  >
+                    Delete
+                  </CDropdownItem>
                 </CDropdownMenu>
               </CDropdown>
               &nbsp;

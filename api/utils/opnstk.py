@@ -2,7 +2,10 @@ import openstack
 from openstack.connection import Connection
 from openstack.identity.v3.project import Project
 from openstack.network.v2.network import Network
+from openstack.network.v2.port import Port
+from openstack.compute.v2.flavor import Flavor
 from openstack.compute.v2.server import Server
+from openstack.compute.v2.image import Image
 from openstack.network.v2.subnet import Subnet
 from openstack.network.v2.router import Router
 from keystoneauth1.session import Session
@@ -10,6 +13,8 @@ from novaclient.v2.client import Client
 import novaclient.client as nova
 
 _instance = None
+
+str
 
 
 class OpenStack:
@@ -45,7 +50,7 @@ class OpenStack:
     def create_network(self, project_name: str, cidr: str):
         from api.utils.networking import get_dhcp_allocation_pools
 
-        if cidr in self.get_subnets():
+        if cidr in self.get_subnets_cidr():
             return False
 
         project: Connection = self.conn.connect_as_project(project_name)
@@ -63,12 +68,40 @@ class OpenStack:
         project.add_router_interface(main_router, subnet_id=subnet.id)
         return True
 
-    def get_subnets(self, project_name: str = None) -> list[str]:
+    def get_subnets_cidr(self, project_name: str = None) -> list[str]:
         project = self.conn
         if project_name:
             project = self.conn.connect_as_project(project_name)
 
         return [subnet.cidr for subnet in project.list_subnets()]
+
+    def get_subnets(self, project_name: str = None) -> list[Subnet]:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+
+        project_id = project.current_project_id
+        subnets: list[Subnet] = project.list_subnets()
+
+        return [subnet for subnet in subnets if subnet.project_id == project_id]
+
+    def get_networks(self, project_name: str = None) -> list[Network]:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+
+        return project.list_networks()
+
+    def get_project_ports(self, project_name: str = None) -> list[Port]:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+
+        return [
+            port
+            for port in project.list_ports()
+            if port.location.project.name == project_name
+        ]
 
     # Compute related functions
 
@@ -82,14 +115,51 @@ class OpenStack:
     ) -> Server:
         project: Connection = self.conn.connect_as_project(project_name)
         return project.create_server(
-            name=name, image=image_name, flavor=flavor_name, network=network_name
+            name=name,
+            image=image_name,
+            flavor=flavor_name,
+            network=network_name,
+            terminate_volume=True,
         )
+
+    def delete_instance(self, project_name: str, instance_id: str) -> bool:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+
+        return project.delete_server(instance_id, delete_ips=True)
 
     def list_instances(self, project_id: str = None) -> list[Server]:
         servers = self.conn.list_servers(
             all_projects=True, filters={"project_id": project_id}
         )
         return servers
+
+    def get_flavors(self) -> list[Flavor]:
+        return self.conn.list_flavors()
+
+    def create_flavor(self, vcpus: int, ram: int, disk: int, name: str) -> Flavor:
+        flavor: Flavor = self.conn.create_flavor(
+            name=name, ram=ram, vcpus=vcpus, disk=disk
+        )
+        self.conn.set_flavor_specs(
+            flavor,
+            {
+                "hw:cpu_max_cores": f"{vcpus}",
+                "hw:cpu_max_sockets": "1",
+                "hw:cpu_max_threads": "1",
+            },
+        )
+        return flavor
+
+    def get_images(self, project_name: str = None) -> list[Image]:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+
+        images: list[Image] = project.list_images()
+
+        return [image for image in images if image.visibility == "public"]
 
     def get_instance_status(self, server_id: str, project_id: str = None) -> str:
         instance: Server = self.conn.get_server(server_id, all_projects=True)

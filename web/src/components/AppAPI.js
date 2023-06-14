@@ -7,6 +7,7 @@ const API_URLS = {
   STOP_VM: BASE_API_URL + '/compute/stop_vm',
   REBOOT_VM: BASE_API_URL + '/compute/reboot_vm',
   CREATE_VM: BASE_API_URL + '/compute/create_vm',
+  DELETE_VM: BASE_API_URL + '/compute/delete_vm',
   GET_CONSOLE_URL: BASE_API_URL + '/compute/get_console_url',
   WEBSOCKET: BASE_API_URL.replace('https', 'wss') + '/ws',
 }

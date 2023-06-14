@@ -1,7 +1,10 @@
-import json
 from fastapi import APIRouter, Depends, BackgroundTasks
 
-from api.utils.compute import convert_ram_to_str, get_ip_from_addresses
+from api.utils.compute import (
+    convert_ram_to_str,
+    get_ip_from_addresses,
+    get_or_create_flavor,
+)
 from api.utils.opnstk import OpenStack
 from api.models.users import LdapUserInfo
 from .auth import authenticate
@@ -31,16 +34,38 @@ async def poll_vm_status(old_status: str, vm_id: str, project_id: str):
     tags=["Compute"],
 )
 def create_vm(
+    vm_name: str,
+    vcpus: int,
+    memory: int,
+    disk: int,
+    image_id: str,
+    network_id: str,
     user_info: LdapUserInfo = Depends(authenticate),
-    vm_name: str = None,
-    flavor: str = None,
-    image: str = None,
-    network: str = None,
 ):
     openstack = OpenStack.Instance()
     project_name = f"cyberrange-{user_info.username}"
-    vm = openstack.create_instance(project_name, image, flavor, network, vm_name)
+
+    flavor_name = f"{vcpus}vcpu-{convert_ram_to_str(memory)}-{disk}gb"
+    flavor = get_or_create_flavor(openstack, flavor_name, vcpus, memory, disk)
+
+    vm = openstack.create_instance(
+        project_name, image_id, flavor.id, network_id, vm_name
+    )
     return {"err": False, "vm-id": vm.id}
+
+
+@router.post(
+    "/compute/delete_vm",
+    tags=["Compute"],
+)
+def delete_vm(vm_id: str, user_info: LdapUserInfo = Depends(authenticate)):
+    openstack = OpenStack.Instance()
+    project_name = f"cyberrange-{user_info.username}"
+
+    res = openstack.delete_instance(project_name, vm_id)
+    if res:
+        return {"err": False}
+    return {"err": True, "msg": f"Failed to delete VM with id: {vm_id}"}
 
 
 @router.get(
@@ -63,6 +88,27 @@ def list_vms(user_info: LdapUserInfo = Depends(authenticate)):
                 "status": server.status,
             }
             for server in servers
+        ],
+    }
+
+
+@router.get(
+    "/compute/list_images",
+    tags=["Compute"],
+)
+def list_images(user_info: LdapUserInfo = Depends(authenticate)):
+    openstack = OpenStack.Instance()
+    project_name = f"cyberrange-{user_info.username}"
+    images = openstack.get_images(project_name)
+    return {
+        "err": False,
+        "images": [
+            {
+                "id": image.id,
+                "name": image.name,
+                "status": image.status,
+            }
+            for image in images
         ],
     }
 

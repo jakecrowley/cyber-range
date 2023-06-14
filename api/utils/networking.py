@@ -45,7 +45,7 @@ def get_dhcp_allocation_pools(subnet: str) -> list[dict[str, str]]:
 
 
 def get_unused_private_subnet():
-    used_subnets = OpenStack.Instance().get_subnets()
+    used_subnets = OpenStack.Instance().get_subnets_cidr()
 
     subnet = gen_private_subnet()
     if subnet in used_subnets:
