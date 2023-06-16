@@ -1,4 +1,5 @@
-import { createStore } from 'redux'
+import { configureStore } from '@reduxjs/toolkit'
+import websocketReducer from './websocketSlice'
 
 const initialState = {
   sidebarShow: true,
@@ -13,5 +14,9 @@ const changeState = (state = initialState, { type, ...rest }) => {
   }
 }
 
-const store = createStore(changeState)
+const store = configureStore({
+  reducer: {
+    ws: websocketReducer,
+  },
+})
 export default store

@@ -1,4 +1,5 @@
 const BASE_API_URL = 'https://cyberrangeapi.jakecrowley.com/v1'
+const BASE_SIO_URL = 'https://cyberrangeapi.jakecrowley.com/'
 
 const API_URLS = {
   LOGIN: BASE_API_URL + '/auth/login',
@@ -8,8 +9,10 @@ const API_URLS = {
   REBOOT_VM: BASE_API_URL + '/compute/reboot_vm',
   CREATE_VM: BASE_API_URL + '/compute/create_vm',
   DELETE_VM: BASE_API_URL + '/compute/delete_vm',
+  LIST_IMAGES: BASE_API_URL + '/compute/list_images',
   GET_CONSOLE_URL: BASE_API_URL + '/compute/get_console_url',
-  WEBSOCKET: BASE_API_URL.replace('https', 'wss') + '/ws',
+  LIST_SUBNETS: BASE_API_URL + '/networking/get_subnets',
+  SOCKETIO: BASE_SIO_URL,
 }
 
 export default API_URLS

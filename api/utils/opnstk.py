@@ -14,8 +14,6 @@ import novaclient.client as nova
 
 _instance = None
 
-str
-
 
 class OpenStack:
     conn: Connection = None
@@ -118,7 +116,8 @@ class OpenStack:
             name=name,
             image=image_name,
             flavor=flavor_name,
-            network=network_name,
+            network=project_name,
+            ip_pool=network_name,
             terminate_volume=True,
         )
 
@@ -164,10 +163,13 @@ class OpenStack:
     def get_instance_status(self, server_id: str, project_id: str = None) -> str:
         instance: Server = self.conn.get_server(server_id, all_projects=True)
 
+        if instance is None:
+            return (None, "DELETED")
+
         if instance.project_id != project_id:
             raise Exception("Unauthorized")
 
-        return instance.status
+        return (instance, instance.status)
 
     def get_console_url(self, server_id: str, project_name: str) -> str:
         instance: Server = self.conn.get_server(server_id, all_projects=True)

@@ -37,9 +37,6 @@ async def startup_event():
 
     get_redis()
 
-    # project_name = "cyberrange-teststudent"
-    # OpenStack.Instance().create_instance(project_name, "cirros", "m1.extra_tiny", project_name, "cirros test")
-
 
 @app.exception_handler(RequestValidationError)
 async def http_exception_handler(request, exc):

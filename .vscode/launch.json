@@ -11,7 +11,7 @@
             "module": "uvicorn",
             "args": [
                 "api.server:app",
-                "--workers", "4",
+                "--workers", "8",
             ],
             "jinja": true,
             "justMyCode": true

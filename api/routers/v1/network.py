@@ -9,7 +9,7 @@ from pprint import pprint
 router = APIRouter()
 
 
-@router.post(
+@router.get(
     "/networking/get_networks",
     tags=["Networking"],
 )
@@ -36,3 +36,18 @@ def get_networks(
             for network in networks
         ],
     }
+
+
+@router.get(
+    "/networking/get_subnets",
+    tags=["Networking"],
+)
+def get_subnets(
+    user_info: LdapUserInfo = Depends(authenticate),
+):
+    openstack = OpenStack.Instance()
+    project_name = f"cyberrange-{user_info.username}"
+
+    subnets = openstack.get_subnets(project_name)
+
+    return {"err": False, "subnets": subnets}

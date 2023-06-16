@@ -14,18 +14,19 @@ import {
 } from '@coreui/react'
 import { API_URLS } from 'src/components'
 import axios from 'axios'
+import { useSelector } from 'react-redux'
 
 const ServerTable = (ctx) => {
+  const [runOnce, setRunOnce] = useState(false)
   const [vms, setVMs] = useState([])
-  const [socket, setSocket] = useState(null)
-
-  console.log(ctx)
+  const socket = useSelector((state) => state.ws.socket)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(API_URLS['LIST_VMS'], { withCredentials: true })
         const data = response.data
+        ctx.setLoading(false)
         setVMs(data.vms) // Update the state with the retrieved data
       } catch (error) {
         console.error('Error fetching VM data:', error)
@@ -33,31 +34,85 @@ const ServerTable = (ctx) => {
       }
     }
 
-    fetchData()
+    if (!runOnce) {
+      setRunOnce(true)
+      fetchData()
+    }
 
-    const ws = new WebSocket(API_URLS['WEBSOCKET'])
-    setSocket(ws)
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data)
-
-      if (msg.type === 'INSTANCE_STATUS') {
+    if (socket) {
+      socket.on('INSTANCE_STATUS', (vm_status) => {
         setVMs((prevData) => {
           const newData = prevData.map((vm) => {
-            if (vm.id === msg.data.vm_id) {
-              return { ...vm, status: msg.data.status }
+            if (vm.id === vm_status.vm_id) {
+              if (vm_status.status === 'DELETED') {
+                return null
+              }
+              return { ...vm, status: vm_status.status }
             }
             return vm
           })
-          return newData
+          return newData.filter((vm) => vm !== null)
         })
-      }
+      })
+
+      socket.on('INSTANCE_UPDATE', (vm_update) => {
+        setVMs((prevData) => {
+          const newData = prevData.map((vm) => {
+            if (vm.id === vm_update.vm_id) {
+              if (vm_update.vm.status === 'DELETED') {
+                return null
+              }
+              return vm_update.vm
+            }
+            return vm
+          })
+          return newData.filter((vm) => vm !== null)
+        })
+      })
+
+      socket.on('INSTANCE_CREATE', (vm) => {
+        fetchData()
+      })
     }
 
-    return () => {
-      ws.close()
+    /*
+    if (socket) {
+      socket.addEventListener('message', (event) => {
+        const msg = JSON.parse(event.data)
+
+        if (msg.type === 'INSTANCE_STATUS') {
+          setVMs((prevData) => {
+            const newData = prevData.map((vm) => {
+              if (vm.id === msg.data.vm_id) {
+                if (msg.data.status === 'DELETED') {
+                  return null
+                }
+                return { ...vm, status: msg.data.status }
+              }
+              return vm
+            })
+            return newData.filter((vm) => vm !== null)
+          })
+        } else if (msg.type === 'INSTANCE_UPDATE') {
+          setVMs((prevData) => {
+            const newData = prevData.map((vm) => {
+              if (vm.id === msg.data.vm_id) {
+                if (msg.data.vm.status === 'DELETED') {
+                  return null
+                }
+                return msg.data.vm
+              }
+              return vm
+            })
+            return newData.filter((vm) => vm !== null)
+          })
+        } else if (msg.type === 'INSTANCE_CREATE') {
+          fetchData()
+        }
+      })
     }
-  }, []) // Empty dependency array to run the effect only once on component mount
+    */
+  }, [ctx, runOnce, socket]) // Empty dependency array to run the effect only once on component mount
 
   const startStopVM = async (vm_id, status) => {
     var action_url = ''
