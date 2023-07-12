@@ -10,6 +10,7 @@ const API_URLS = {
   CREATE_VM: BASE_API_URL + '/compute/create_vm',
   DELETE_VM: BASE_API_URL + '/compute/delete_vm',
   LIST_IMAGES: BASE_API_URL + '/compute/list_images',
+  LIST_KEYPAIRS: BASE_API_URL + '/compute/list_keypairs',
   GET_CONSOLE_URL: BASE_API_URL + '/compute/get_console_url',
   LIST_SUBNETS: BASE_API_URL + '/networking/get_subnets',
   SOCKETIO: BASE_SIO_URL,

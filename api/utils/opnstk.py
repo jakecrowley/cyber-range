@@ -109,6 +109,7 @@ class OpenStack:
         image_name: str,
         flavor_name: str,
         network_name: str,
+        keypair_name: str | None,
         name: str,
     ) -> Server:
         project: Connection = self.conn.connect_as_project(project_name)
@@ -119,6 +120,7 @@ class OpenStack:
             network=project_name,
             ip_pool=network_name,
             terminate_volume=True,
+            key_name=keypair_name,
         )
 
     def delete_instance(self, project_name: str, instance_id: str) -> bool:
@@ -136,7 +138,14 @@ class OpenStack:
 
     def get_flavors(self) -> list[Flavor]:
         return self.conn.list_flavors()
+    
+    def get_keypairs(self, project_name: str = None) -> list:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
 
+        return project.list_keypairs()
+    
     def create_flavor(self, vcpus: int, ram: int, disk: int, name: str) -> Flavor:
         flavor: Flavor = self.conn.create_flavor(
             name=name, ram=ram, vcpus=vcpus, disk=disk

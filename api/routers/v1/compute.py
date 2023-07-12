@@ -76,7 +76,7 @@ def create_vm(
     )
 
     vm = openstack.create_instance(
-        project_name, vm_info.image_id, flavor.id, vm_info.network_id, vm_info.vm_name
+        project_name, vm_info.image_id, flavor.id, vm_info.network_id, vm_info.keypair_name, vm_info.vm_name
     )
 
     background_tasks.add_task(
@@ -158,7 +158,20 @@ def list_images(user_info: LdapUserInfo = Depends(authenticate)):
             for image in images
         ],
     }
+    
+@router.get(
+    "/compute/list_keypairs",
+    tags=["Compute"],
+)
+def list_keypairs(user_info: LdapUserInfo = Depends(authenticate)):
+    openstack = OpenStack.Instance()
+    project_name = f"cyberrange-{user_info.username}"
+    keypairs = openstack.get_keypairs(project_name)
 
+    return {
+        "err": False,
+        "keypairs": keypairs
+    }
 
 @router.get(
     "/compute/start_vm",

@@ -74,44 +74,6 @@ const ServerTable = (ctx) => {
         fetchData()
       })
     }
-
-    /*
-    if (socket) {
-      socket.addEventListener('message', (event) => {
-        const msg = JSON.parse(event.data)
-
-        if (msg.type === 'INSTANCE_STATUS') {
-          setVMs((prevData) => {
-            const newData = prevData.map((vm) => {
-              if (vm.id === msg.data.vm_id) {
-                if (msg.data.status === 'DELETED') {
-                  return null
-                }
-                return { ...vm, status: msg.data.status }
-              }
-              return vm
-            })
-            return newData.filter((vm) => vm !== null)
-          })
-        } else if (msg.type === 'INSTANCE_UPDATE') {
-          setVMs((prevData) => {
-            const newData = prevData.map((vm) => {
-              if (vm.id === msg.data.vm_id) {
-                if (msg.data.vm.status === 'DELETED') {
-                  return null
-                }
-                return msg.data.vm
-              }
-              return vm
-            })
-            return newData.filter((vm) => vm !== null)
-          })
-        } else if (msg.type === 'INSTANCE_CREATE') {
-          fetchData()
-        }
-      })
-    }
-    */
   }, [ctx, runOnce, socket]) // Empty dependency array to run the effect only once on component mount
 
   const startStopVM = async (vm_id, status) => {

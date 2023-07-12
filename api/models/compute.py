@@ -8,6 +8,7 @@ class CreateVMInfo(BaseModel):
     disk: int
     image_id: str
     network_id: str
+    keypair_name: str
 
 
 class CreateVMResponse(BaseModel):

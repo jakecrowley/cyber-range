@@ -22,6 +22,7 @@ import { API_URLS } from 'src/components'
 const CreateServerModal = (ctx) => {
   const [images, setImages] = useState([])
   const [subnets, setSubnets] = useState([])
+  const [keypairs, setKeypairs] = useState([])
   const [loading, setLoading] = useState(false)
   const form = useRef(null)
 
@@ -37,8 +38,13 @@ const CreateServerModal = (ctx) => {
         if (subnetResp.status === 200 && subnetResp.data.err === false) {
           setSubnets(subnetResp.data.subnets)
         }
+
+        const keypairResp = await axios.get(API_URLS['LIST_KEYPAIRS'], { withCredentials: true })
+        if (subnetResp.status === 200 && subnetResp.data.err === false) {
+          setKeypairs(keypairResp.data.keypairs)
+        }
       } catch (error) {
-        console.error('Error fetching VM data:', error)
+        console.error('Error fetching data:', error)
         window.location = '/#/login'
       }
     }
@@ -49,9 +55,9 @@ const CreateServerModal = (ctx) => {
   const onSelectOS = (e) => {
     const selectedImage = images.find((image) => image.id === e.target.value)
     if (selectedImage.recommended_specs !== undefined) {
-      e.target.form[3].value = selectedImage.recommended_specs.vcpus
-      e.target.form[4].value = selectedImage.recommended_specs.disk
-      e.target.form[5].value = selectedImage.recommended_specs.memory
+      e.target.form[4].value = selectedImage.recommended_specs.vcpus
+      e.target.form[5].value = selectedImage.recommended_specs.disk
+      e.target.form[6].value = selectedImage.recommended_specs.memory
     }
   }
 
@@ -62,6 +68,9 @@ const CreateServerModal = (ctx) => {
     const disk = form.current.elements['inputDisk'].value
     const memory = form.current.elements['inputMemory'].value
     const subnet = form.current.elements['inputSubnet'].value
+
+    let keypair = form.current.elements['inputKeypair'].value
+    if (keypair === 'Select a Keypair') keypair = ''
 
     try {
       axios
@@ -74,6 +83,7 @@ const CreateServerModal = (ctx) => {
             disk: disk,
             image_id: os,
             network_id: subnet,
+            keypair: keypair,
           },
           { withCredentials: true },
         )
@@ -129,6 +139,21 @@ const CreateServerModal = (ctx) => {
                   {subnets.map((subnet, i) => (
                     <option key={i} value={subnet.id}>
                       {subnet.name}
+                    </option>
+                  ))}
+                </CFormSelect>
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CFormLabel htmlFor="inputKeypair" className="col-sm-1 col-form-label">
+                Keypair:
+              </CFormLabel>
+              <CCol sm={10}>
+                <CFormSelect id="inputKeypair" aria-label="Select a Keypair">
+                  <option>Select a Keypair</option>
+                  {keypairs.map((keypair, i) => (
+                    <option key={i} value={keypair.name}>
+                      {keypair.name + ' (' + keypair.fingerprint + ')'}
                     </option>
                   ))}
                 </CFormSelect>
