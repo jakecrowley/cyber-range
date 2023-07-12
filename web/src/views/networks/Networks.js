@@ -1,27 +1,36 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-import ServerTable from './ServerTable'
-import { CButton, CCard, CCardBody, CCardHeader, CPlaceholder } from '@coreui/react'
+import NetworkTable from './NetworkTable'
+import { CButton, CCard, CCardBody, CCardHeader, CPlaceholder, CSpinner } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPlus } from '@coreui/icons'
 
-const Servers = () => {
+const Networks = () => {
+  const [loading, setLoading] = useState(true)
+
   return (
     <>
       <CCard className="mb-4">
         <CCardHeader style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{ flexGrow: 1 }}>Virtual Machines</div>
+          <div style={{ flexGrow: 1 }}>Networks</div>
           <CButton color="success">
             <CIcon icon={cilPlus} />
-            &nbsp; Create VM
+            &nbsp; Create Network
           </CButton>
         </CCardHeader>
         <CCardBody>
-          <CPlaceholder component={ServerTable} animation="glow" xs={7} />
+          <CPlaceholder component={NetworkTable} animation="glow" xs={7} />
+          <div
+            style={loading ? {} : { visibility: 'hidden' }}
+            className="d-flex justify-content-center align-items-center"
+          >
+            Loading Networks... &nbsp;
+            <CSpinner color="primary" />
+          </div>
         </CCardBody>
       </CCard>
     </>
   )
 }
 
-export default Servers
+export default Networks

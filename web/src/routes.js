@@ -3,6 +3,7 @@ import React from 'react'
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Servers = React.lazy(() => import('./views/servers/Servers'))
 const ConsolePage = React.lazy(() => import('./views/servers/Console'))
+const Networks = React.lazy(() => import('./views/networks/Networks'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
 
@@ -56,6 +57,7 @@ const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/servers', name: 'Virtual Machines', element: Servers },
+  { path: '/networks', name: 'Networks', element: Networks },
   { path: '/console/*', name: 'Console', element: ConsolePage },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
