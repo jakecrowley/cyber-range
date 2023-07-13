@@ -70,7 +70,7 @@ const CreateServerModal = (ctx) => {
     const subnet = form.current.elements['inputSubnet'].value
 
     let keypair = form.current.elements['inputKeypair'].value
-    if (keypair === 'Select a Keypair') keypair = ''
+    if (keypair === 'Select a Keypair') keypair = null
 
     try {
       axios
@@ -83,12 +83,13 @@ const CreateServerModal = (ctx) => {
             disk: disk,
             image_id: os,
             network_id: subnet,
-            keypair: keypair,
+            keypair_name: keypair,
           },
           { withCredentials: true },
         )
         .then((response) => {
           if (response.status === 200 && response.data.err === false) {
+            setLoading(false)
             ctx.setModalVisible(false)
           }
         })
