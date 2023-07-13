@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import NetworkTable from './NetworkTable'
-import { CButton, CCard, CCardBody, CCardHeader, CPlaceholder, CSpinner } from '@coreui/react'
+import { CButton, CCard, CCardBody, CCardHeader, CSpinner } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPlus } from '@coreui/icons'
 
@@ -19,7 +19,7 @@ const Networks = () => {
           </CButton>
         </CCardHeader>
         <CCardBody>
-          <CPlaceholder component={NetworkTable} animation="glow" xs={7} />
+          <NetworkTable setLoading={setLoading} />
           <div
             style={loading ? {} : { visibility: 'hidden' }}
             className="d-flex justify-content-center align-items-center"
