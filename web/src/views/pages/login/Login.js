@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import axios from 'axios'
 import {
   CButton,
@@ -12,11 +12,13 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
 
 const Login = () => {
+  const [loading, setLoading] = useState(false)
   const usernameRef = useRef()
   const passwordRef = useRef()
 
@@ -25,14 +27,18 @@ const Login = () => {
       let username = usernameRef.current.value
       let password = passwordRef.current.value
 
+      setLoading(true)
+
       axios
         .post('https://cyberrangeapi.jakecrowley.com/v1/auth/login', { username, password })
         .then((response) => {
           if (response.data.err === true) {
             document.getElementById('error').hidden = false
+            setLoading(false)
             return
           } else {
             const token = response.data.token
+            setLoading(false)
 
             // Set the token as a cookie in the browser
             // This cookie will be automatically attached to all subsequent requests for *.jakecrowley.com
@@ -47,6 +53,7 @@ const Login = () => {
         .catch((error) => {
           console.error('Login failed:', error)
           document.getElementById('error').hidden = false
+          setLoading(false)
         })
     }
   }
@@ -64,7 +71,7 @@ const Login = () => {
               <CCard className="p-4">
                 <CCardBody>
                   <CForm>
-                    <p id="error" hidden="true" style={{ textAlign: 'center', color: 'red' }}>
+                    <p id="error" hidden={true} style={{ textAlign: 'center', color: 'red' }}>
                       Invalid Login Credentials
                     </p>
                     <h1>Login</h1>
@@ -94,6 +101,11 @@ const Login = () => {
                     <CRow>
                       <CCol xs={6}>
                         <CButton color="primary" className="px-4" onClick={login}>
+                          <CSpinner
+                            color="secondary"
+                            size="sm"
+                            style={!loading ? { display: 'none' } : { marginRight: '5px' }}
+                          />
                           Login
                         </CButton>
                       </CCol>
