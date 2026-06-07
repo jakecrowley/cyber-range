@@ -138,7 +138,7 @@ const CreateServerModal = (ctx) => {
                 <CFormSelect id="inputSubnet" aria-label="Select a Subnet">
                   <option>Select a Subnet</option>
                   {subnets.map((subnet, i) => (
-                    <option key={i} value={subnet.id}>
+                    <option key={i} value={subnet.network_id}>
                       {subnet.name}
                     </option>
                   ))}

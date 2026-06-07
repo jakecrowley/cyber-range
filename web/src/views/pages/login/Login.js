@@ -30,7 +30,7 @@ const Login = () => {
       setLoading(true)
 
       axios
-        .post('https://cyberrangeapi.jakecrowley.com/v1/auth/login', { username, password })
+        .post('http://localhost:8000/v1/auth/login', { username, password })
         .then((response) => {
           if (response.data.err === true) {
             document.getElementById('error').hidden = false
@@ -42,7 +42,7 @@ const Login = () => {
 
             // Set the token as a cookie in the browser
             // This cookie will be automatically attached to all subsequent requests for *.jakecrowley.com
-            document.cookie = `token=${token};domain=.jakecrowley.com;path=/;`
+            document.cookie = `token=${token};path=/;`
 
             // Perform any further actions after successful login
             // For example, redirect to another page or update the application state

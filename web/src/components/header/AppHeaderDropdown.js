@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   CDropdown,
   CDropdownDivider,
@@ -11,8 +11,11 @@ import { cilLockLocked, cilSettings, cilUser, cilMenu } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import Cookies from 'js-cookie'
 import jwt_decode from 'jwt-decode'
+import CreateKeypairModal from '../CreateKeypairModal'
 
 const AppHeaderDropdown = () => {
+  const [keypairModalVisible, setKeypairModalVisible] = useState(false)
+
   function getDisplayName() {
     var token = Cookies.get('token')
     if (token === undefined) {
@@ -24,34 +27,41 @@ const AppHeaderDropdown = () => {
   }
 
   function logout() {
-    document.cookie = `token=x;domain=.jakecrowley.com;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
+    document.cookie = `token=x;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
     window.location = '/#/login'
   }
 
   return (
-    <CDropdown variant="nav-item">
-      <CDropdownToggle placement="bottom-end" className="py-0" caret={false}>
-        <CIcon icon={cilMenu} style={{ flexGrow: 1 }} />
-        &nbsp;
-        {getDisplayName()}
-      </CDropdownToggle>
-      <CDropdownMenu className="pt-0" placement="bottom-end">
-        <CDropdownHeader className="bg-light fw-semibold py-2">Settings</CDropdownHeader>
-        <CDropdownItem href="#">
-          <CIcon icon={cilUser} className="me-2" />
-          Profile
-        </CDropdownItem>
-        <CDropdownItem href="#">
-          <CIcon icon={cilSettings} className="me-2" />
-          Settings
-        </CDropdownItem>
-        <CDropdownDivider />
-        <CDropdownItem onClick={logout}>
-          <CIcon icon={cilLockLocked} className="me-2" />
-          Logout
-        </CDropdownItem>
-      </CDropdownMenu>
-    </CDropdown>
+    <>
+      <CreateKeypairModal visible={keypairModalVisible} setVisible={setKeypairModalVisible} />
+      <CDropdown variant="nav-item">
+        <CDropdownToggle placement="bottom-end" className="py-0" caret={false}>
+          <CIcon icon={cilMenu} style={{ flexGrow: 1 }} />
+          &nbsp;
+          {getDisplayName()}
+        </CDropdownToggle>
+        <CDropdownMenu className="pt-0" placement="bottom-end">
+          <CDropdownHeader className="bg-light fw-semibold py-2">Settings</CDropdownHeader>
+          <CDropdownItem href="#">
+            <CIcon icon={cilUser} className="me-2" />
+            Profile
+          </CDropdownItem>
+          <CDropdownItem href="#">
+            <CIcon icon={cilSettings} className="me-2" />
+            Settings
+          </CDropdownItem>
+          <CDropdownItem onClick={() => setKeypairModalVisible(true)}>
+            <CIcon icon={cilLockLocked} className="me-2" />
+            SSH Keys
+          </CDropdownItem>
+          <CDropdownDivider />
+          <CDropdownItem onClick={logout}>
+            <CIcon icon={cilLockLocked} className="me-2" />
+            Logout
+          </CDropdownItem>
+        </CDropdownMenu>
+      </CDropdown>
+    </>
   )
 }
 
