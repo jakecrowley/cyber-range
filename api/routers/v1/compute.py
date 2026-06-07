@@ -8,7 +8,7 @@ from api.utils.compute import (
 )
 from api.utils.opnstk import OpenStack
 from api.models.users import LdapUserInfo
-from api.models.compute import CreateVMInfo, CreateVMResponse
+from api.models.compute import CreateVMInfo, CreateVMResponse, CreateKeypairInfo, CreateKeypairResponse
 from api.models import DefaultResponse
 from .auth import authenticate
 from api.routers.v1.ws import manager
@@ -172,6 +172,27 @@ def list_keypairs(user_info: LdapUserInfo = Depends(authenticate)):
         "err": False,
         "keypairs": keypairs
     }
+
+@router.post(
+    "/compute/create_keypair",
+    tags=["Compute"],
+    response_model=CreateKeypairResponse,
+)
+def create_keypair(
+    keypair_info: CreateKeypairInfo,
+    user_info: LdapUserInfo = Depends(authenticate),
+):
+    openstack = OpenStack.Instance()
+    project_name = f"cyberrange-{user_info.username}"
+
+    keypair = openstack.create_keypair(project_name, keypair_info.name)
+
+    return CreateKeypairResponse(
+        err=False,
+        name=keypair["name"],
+        private_key=keypair["private_key"],
+        msg=None,
+    )
 
 @router.get(
     "/compute/start_vm",

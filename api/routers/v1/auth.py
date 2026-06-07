@@ -35,6 +35,6 @@ async def login(credentials: UserLogin) -> LoginResponse:
         user.project_id = str(project.id)
         token = jwt.encode_token(user)
 
-        return LoginResponse(err=False, token=token)
+        return LoginResponse(err=False, token=token, msg=None)
 
-    return LoginResponse(err=True, msg="Invalid Credentials")
+    return LoginResponse(err=True, token=None, msg="Invalid Credentials")

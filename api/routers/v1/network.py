@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from api.utils.opnstk import OpenStack
 from api.models.users import LdapUserInfo
+from api.models import CreateNetworkInfo, CreateNetworkResponse
 from .auth import authenticate
 
 from pprint import pprint
@@ -51,3 +52,43 @@ def get_subnets(
     subnets = openstack.get_subnets(project_name)
 
     return {"err": False, "subnets": subnets}
+
+
+@router.post(
+    "/networking/create_network",
+    tags=["Networking"],
+    response_model=CreateNetworkResponse,
+)
+def create_network(
+    network_info: CreateNetworkInfo,
+    user_info: LdapUserInfo = Depends(authenticate),
+):
+    openstack = OpenStack.Instance()
+    project_name = f"cyberrange-{user_info.username}"
+
+    result = openstack.create_network(project_name, network_info.cidr, network_info.name)
+
+    if result:
+        return CreateNetworkResponse(err=False, msg=None)
+    else:
+        return CreateNetworkResponse(err=True, msg="Network already exists or invalid CIDR")
+
+
+@router.get(
+    "/networking/delete_network",
+    tags=["Networking"],
+    response_model=CreateNetworkResponse,
+)
+def delete_network(
+    network_id: str,
+    user_info: LdapUserInfo = Depends(authenticate),
+):
+    openstack = OpenStack.Instance()
+    project_name = f"cyberrange-{user_info.username}"
+
+    result = openstack.delete_network(project_name, network_id)
+
+    if result:
+        return CreateNetworkResponse(err=False, msg=None)
+    else:
+        return CreateNetworkResponse(err=True, msg="Failed to delete network")

@@ -45,24 +45,32 @@ class OpenStack:
 
     # Networking related functions
 
-    def create_network(self, project_name: str, cidr: str):
+    def create_network(self, project_name: str, cidr: str, name: str):
         from api.utils.networking import get_dhcp_allocation_pools
 
         if cidr in self.get_subnets_cidr():
             return False
 
         project: Connection = self.conn.connect_as_project(project_name)
-        network: Network = project.create_network(name=project_name)
+        network: Network = project.create_network(name=name)
         subnet: Subnet = project.create_subnet(
             network_name_or_id=network.id,
             cidr=cidr,
             enable_dhcp=True,
-            subnet_name=project_name,
+            subnet_name=name,
             allocation_pools=get_dhcp_allocation_pools(cidr),
             dns_nameservers=["8.8.8.8", "1.1.1.1"],
         )
 
-        main_router: Router = self.conn.get_router("cyber-range-main")
+        main_router: Router = project.get_router("cyber-range-main")
+        if main_router is None:
+            main_router = project.create_router(name="cyber-range-main")
+            public_network = project.get_network("public")
+            if public_network:
+                project.update_router(
+                    main_router,
+                    ext_gateway_net_id=public_network.id
+                )
         project.add_router_interface(main_router, subnet_id=subnet.id)
         return True
 
@@ -89,6 +97,29 @@ class OpenStack:
             project = self.conn.connect_as_project(project_name)
 
         return project.list_networks()
+
+    def delete_network(self, project_name: str, network_id: str) -> bool:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+
+        # Get all subnets attached to this network
+        subnets = [s for s in project.list_subnets() if s.network_id == network_id]
+        
+        # Get the router
+        main_router = project.get_router("cyber-range-main")
+        
+        # Remove subnets from router and delete them
+        for subnet in subnets:
+            if main_router:
+                try:
+                    project.remove_router_interface(main_router, subnet_id=subnet.id)
+                except Exception:
+                    pass  # Interface might already be detached
+            project.delete_subnet(subnet.id)
+        
+        # Now delete the network
+        return project.delete_network(network_id)
 
     def get_project_ports(self, project_name: str = None) -> list[Port]:
         project = self.conn
@@ -117,8 +148,7 @@ class OpenStack:
             name=name,
             image=image_name,
             flavor=flavor_name,
-            network=project_name,
-            ip_pool=network_name,
+            network=network_name,
             terminate_volume=True,
             key_name=keypair_name,
         )
@@ -145,7 +175,19 @@ class OpenStack:
             project = self.conn.connect_as_project(project_name)
 
         return project.list_keypairs()
-    
+
+    def create_keypair(self, project_name: str, name: str) -> dict:
+        project = self.conn
+        if project_name:
+            project = self.conn.connect_as_project(project_name)
+
+        keypair = project.create_keypair(name=name)
+        return {
+            "name": keypair.name,
+            "public_key": keypair.public_key,
+            "private_key": keypair.private_key,
+        }
+
     def create_flavor(self, vcpus: int, ram: int, disk: int, name: str) -> Flavor:
         flavor: Flavor = self.conn.create_flavor(
             name=name, ram=ram, vcpus=vcpus, disk=disk

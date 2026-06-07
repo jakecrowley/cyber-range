@@ -14,3 +14,14 @@ class CreateVMInfo(BaseModel):
 class CreateVMResponse(BaseModel):
     err: bool
     vm_id: str
+
+
+class CreateKeypairInfo(BaseModel):
+    name: str
+
+
+class CreateKeypairResponse(BaseModel):
+    err: bool
+    name: str | None
+    private_key: str | None
+    msg: str | None
