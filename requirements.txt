@@ -3,7 +3,10 @@ pymongo
 uvicorn
 python-dotenv
 python-openstackclient
-python-ldap
+python-novaclient
+python-socketio
+redis
 pycln
 black
 pyjwt
+aiohttp

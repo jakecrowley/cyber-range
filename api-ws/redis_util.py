@@ -1,11 +1,11 @@
-import aioredis
-from aioredis.client import PubSub
+import redis.asyncio as redis
+from redis.asyncio.client import PubSub
 
 
 class Redis:
-    redis_pool = aioredis.from_url("redis://localhost")
+    redis_pool = redis.from_url("redis://localhost")
 
-    def get_redis(self) -> aioredis.Redis:
+    def get_redis(self) -> redis.Redis:
         return self.redis_pool
 
     def get_pubsub(self) -> PubSub:
